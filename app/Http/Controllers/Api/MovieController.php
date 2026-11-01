@@ -3,18 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MovieListRequest;
 use App\Http\Resources\MovieResource;
 use App\Models\Movie;
-use Illuminate\Http\Request;
 
 class MovieController extends Controller
 {
-    public function index(Request $request)
+    public function index(MovieListRequest $request)
     {
-        $data = $request->validate([
-            'genre_id' => ['nullable', 'integer', 'exists:genres,id'],
-            'search'   => ['nullable', 'string', 'max:100'],
-        ]);
+        $data = $request->validated();
 
         $movies = Movie::with('genres')
             ->when($data['genre_id'] ?? null, fn ($q, $genreId) => $q->whereHas(

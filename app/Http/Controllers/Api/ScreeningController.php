@@ -3,21 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ScreeningListRequest;
 use App\Http\Resources\ScreeningResource;
 use App\Models\Screening;
 use App\Models\Seat;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ScreeningController extends Controller
 {
-    public function index(Request $request)
+    public function index(ScreeningListRequest $request)
     {
-        $data = $request->validate([
-            'date'     => ['nullable', 'date_format:Y-m-d'],
-            'movie_id' => ['nullable', 'integer', 'exists:movies,id'],
-            'hall_id'  => ['nullable', 'integer', 'exists:halls,id'],
-        ]);
+        $data = $request->validated();
 
         $screenings = Screening::with(['movie.genres', 'hall'])
             ->withCount('tickets')

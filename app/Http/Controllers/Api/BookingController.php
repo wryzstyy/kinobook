@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBookingRequest;
 use App\Http\Resources\BookingResource;
 use App\Models\Order;
 use App\Models\Screening;
@@ -38,13 +39,9 @@ class BookingController extends Controller
     }
 
     // Купить билеты
-    public function store(Request $request): JsonResponse
+    public function store(StoreBookingRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'session_id'   => ['required', 'integer', 'exists:screenings,id'],
-            'seat_ids'     => ['required', 'array', 'min:1', 'max:6'],
-            'seat_ids.*'   => ['integer', 'distinct'],
-        ]);
+        $data = $request->validated();
 
         try {
             $order = DB::transaction(function () use ($data, $request) {

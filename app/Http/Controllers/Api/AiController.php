@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\MovieDescriptionRequest;
 use App\Http\Resources\MovieResource;
 use App\Models\Movie;
 use App\Services\AiService;
@@ -14,15 +15,9 @@ use RuntimeException;
 class AiController extends Controller
 {
     // Админ: краткое описание без спойлеров
-    public function movieDescription(Request $request, AiService $ai): JsonResponse
+    public function movieDescription(MovieDescriptionRequest $request, AiService $ai): JsonResponse
     {
-        $data = $request->validate([
-            'title'            => ['required', 'string', 'max:255'],
-            'genres'           => ['nullable', 'array', 'max:10'],
-            'genres.*'         => ['string', 'max:50'],
-            'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:600'],
-            'notes'            => ['nullable', 'string', 'max:2000'],
-        ]);
+        $data = $request->validated();
 
         $system = 'Ты редактор афиши кинотеатра. Пишешь короткие описания фильмов на русском языке без спойлеров.';
 

@@ -3,26 +3,16 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreHallRequest;
+use App\Http\Requests\Admin\UpdateHallRequest;
 use App\Http\Resources\HallResource;
 use App\Models\Hall;
 use App\Models\Seat;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class HallController extends Controller
 {
-    private function rules(bool $update): array
-    {
-        $req = $update ? ['sometimes', 'required'] : ['required'];
-
-        return [
-            'name'          => [...$req, 'string', 'max:255'],
-            'rows_count'    => [...$req, 'integer', 'min:1', 'max:30'],
-            'seats_per_row' => [...$req, 'integer', 'min:1', 'max:40'],
-        ];
-    }
-
     private function generateSeats(Hall $hall): void
     {
         $now = now();
@@ -53,9 +43,9 @@ class HallController extends Controller
         return new HallResource($hall);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreHallRequest $request): JsonResponse
     {
-        $data = $request->validate($this->rules(false));
+        $data = $request->validated();
 
         $hall = DB::transaction(function () use ($data) {
             $hall = Hall::create($data);
@@ -67,9 +57,9 @@ class HallController extends Controller
         return (new HallResource($hall))->response()->setStatusCode(201);
     }
 
-    public function update(Request $request, Hall $hall)
+    public function update(UpdateHallRequest $request, Hall $hall)
     {
-        $data = $request->validate($this->rules(true));
+        $data = $request->validated();
 
         $resize = (isset($data['rows_count']) && $data['rows_count'] != $hall->rows_count)
             || (isset($data['seats_per_row']) && $data['seats_per_row'] != $hall->seats_per_row);

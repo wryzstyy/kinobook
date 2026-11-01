@@ -3,19 +3,15 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\OccupancyReportRequest;
 use App\Models\Hall;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function occupancy(Request $request): JsonResponse
+    public function occupancy(OccupancyReportRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'date_from' => ['nullable', 'date_format:Y-m-d'],
-            'date_to'   => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'hall_id'   => ['nullable', 'integer', 'exists:halls,id'],
-        ]);
+        $data = $request->validated();
 
         $halls = Hall::query()
             ->when($data['hall_id'] ?? null, fn ($q, $id) => $q->where('id', $id))

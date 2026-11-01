@@ -3,28 +3,18 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreScreeningRequest;
+use App\Http\Requests\Admin\UpdateScreeningRequest;
+use App\Http\Requests\ScreeningListRequest;
 use App\Http\Resources\ScreeningResource;
 use App\Models\Movie;
 use App\Models\Screening;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ScreeningController extends Controller
 {
-    private function rules(bool $update): array
-    {
-        $req = $update ? ['sometimes', 'required'] : ['required'];
-
-        return [
-            'movie_id'  => [...$req, 'integer', 'exists:movies,id'],
-            'hall_id'   => [...$req, 'integer', 'exists:halls,id'],
-            'starts_at' => [...$req, 'date', 'after:now'],
-            'price'     => [...$req, 'numeric', 'gt:0', 'max:99999'],
-        ];
-    }
-
     // В зале не должно быть двух сеансов, пересекающихся по времени
     private function assertNoOverlap(int $hallId, int $movieId, Carbon $start, ?int $ignoreId = null): void
     {
@@ -46,13 +36,9 @@ class ScreeningController extends Controller
     }
 
     // Все сеансы, включая прошедшие
-    public function index(Request $request)
+    public function index(ScreeningListRequest $request)
     {
-        $data = $request->validate([
-            'date'     => ['nullable', 'date_format:Y-m-d'],
-            'movie_id' => ['nullable', 'integer', 'exists:movies,id'],
-            'hall_id'  => ['nullable', 'integer', 'exists:halls,id'],
-        ]);
+        $data = $request->validated();
 
         $screenings = Screening::with(['movie', 'hall'])
             ->withCount('tickets')
@@ -65,9 +51,9 @@ class ScreeningController extends Controller
         return ScreeningResource::collection($screenings);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreScreeningRequest $request): JsonResponse
     {
-        $data = $request->validate($this->rules(false));
+        $data = $request->validated();
 
         $this->assertNoOverlap($data['hall_id'], $data['movie_id'], Carbon::parse($data['starts_at']));
 
@@ -78,9 +64,9 @@ class ScreeningController extends Controller
             ->setStatusCode(201);
     }
 
-    public function update(Request $request, Screening $screening)
+    public function update(UpdateScreeningRequest $request, Screening $screening)
     {
-        $data = $request->validate($this->rules(true));
+        $data = $request->validated();
 
         if ($screening->tickets()->exists()) {
             $changed = (isset($data['hall_id']) && (int) $data['hall_id'] !== $screening->hall_id)

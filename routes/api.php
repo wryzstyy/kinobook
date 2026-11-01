@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\HallController as AdminHallController;
+use App\Http\Controllers\Api\Admin\MovieController as AdminMovieController;
+use App\Http\Controllers\Api\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Api\Admin\ScreeningController as AdminScreeningController;
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\GenreController;
@@ -24,16 +29,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 });
 
-// ===== Зритель (и админ): покупка и личный кабинет =====
+// ===== Зритель (и админ): покупка, кабинет, рекомендации =====
 Route::middleware(['auth:sanctum', 'role:viewer,admin'])->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
+
+    Route::get('/recommendations', [AiController::class, 'recommendations'])->middleware('throttle:10,1');
 });
 
 // ===== Только админ =====
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
-    // Временный маршрут для проверки роли, потом удалим
     Route::get('/ping', fn () => response()->json(['message' => 'admin ok']));
+
+    Route::apiResource('movies', AdminMovieController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('halls', AdminHallController::class);
+    Route::apiResource('sessions', AdminScreeningController::class)
+        ->parameters(['sessions' => 'screening'])
+        ->except('show');
+
+    Route::get('/reports/occupancy', [AdminReportController::class, 'occupancy']);
+    Route::post('/ai/movie-description', [AiController::class, 'movieDescription'])->middleware('throttle:10,1');
 });

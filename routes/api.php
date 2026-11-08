@@ -35,6 +35,8 @@ Route::middleware(['auth:sanctum', 'role:viewer,admin'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
+    Route::post('/bookings/{id}/pay', [BookingController::class, 'pay'])->middleware('throttle:10,1');
+    Route::post('/bookings/{id}/resend', [BookingController::class, 'resend'])->middleware('throttle:3,1');
 
     Route::get('/recommendations', [AiController::class, 'recommendations'])->middleware('throttle:10,1');
 });

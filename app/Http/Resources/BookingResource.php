@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,10 +12,14 @@ class BookingResource extends JsonResource
     {
         $tickets = $this->tickets;
         $screening = $tickets->first()?->screening;
+        $paid = $this->status === OrderStatus::Paid;
 
         return [
             'id'            => $this->id,
+            'status'        => $this->status->value, // pending | paid
             'created_at'    => $this->created_at->toIso8601String(),
+            'paid_at'       => $this->paid_at?->toIso8601String(),
+            'expires_at'    => $this->expires_at?->toIso8601String(), // до этого момента места удерживаются для оплаты
             'session'       => $screening ? [
                 'id'        => $screening->id,
                 'starts_at' => $screening->starts_at->toIso8601String(),
@@ -34,15 +39,17 @@ class BookingResource extends JsonResource
                 'seat_id' => $t->seat_id,
                 'row'     => $t->seat->row_number,
                 'seat'    => $t->seat->seat_number,
+                'code'    => $paid ? $t->code : null, // код выдаётся только после оплаты
             ])->values(),
             'tickets_count' => $tickets->count(),
             'total'         => $screening
                 ? number_format($screening->price * $tickets->count(), 2, '.', '')
                 : '0.00',
-            // можно ли ещё отменить (не позднее чем за 60 минут до начала)
-            'can_cancel'    => $screening
-                ? $screening->starts_at->gte(now()->addMinutes(60))
-                : false,
+            'can_pay'       => ! $paid && $this->expires_at !== null && $this->expires_at->isFuture(),
+            // неоплаченную можно отменить всегда, оплаченную не позднее чем за 60 минут до начала
+            'can_cancel'    => $paid
+                ? ($screening ? $screening->starts_at->gte(now()->addMinutes(60)) : false)
+                : true,
         ];
     }
 }

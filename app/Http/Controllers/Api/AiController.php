@@ -47,13 +47,15 @@ class AiController extends Controller
 
         // Фильмы, на которые зритель покупал билеты
         $watched = Movie::with('genres')
-            ->whereHas('screenings.tickets.order', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('screenings.tickets.order', fn ($q) => $q->where('user_id', $user->id)->where('status', 'paid'))
             ->get();
 
         $genreWeights = $watched->flatMap(fn ($m) => $m->genres)->countBy(fn ($g) => $g->id);
 
         // Сколько билетов продано на каждый фильм (для популярности)
         $sold = DB::table('tickets')
+            ->join('orders', 'orders.id', '=', 'tickets.order_id')
+            ->where('orders.status', 'paid')
             ->join('screenings', 'screenings.id', '=', 'tickets.screening_id')
             ->select('screenings.movie_id', DB::raw('count(*) as c'))
             ->groupBy('screenings.movie_id')

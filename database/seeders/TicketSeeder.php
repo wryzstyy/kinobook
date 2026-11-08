@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TicketSeeder extends Seeder
 {
@@ -34,6 +35,7 @@ class TicketSeeder extends Seeder
                     'order_id'     => $orderId,
                     'screening_id' => $screeningId,
                     'seat_id'      => $seatId,
+                    'code'         => Str::upper(Str::random(12)),
                     'created_at'   => $now,
                     'updated_at'   => $now,
                 ];

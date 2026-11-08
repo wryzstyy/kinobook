@@ -11,12 +11,22 @@ class GenreSeeder extends Seeder
     {
         $now = now();
 
-        DB::table('genres')->insert([
-            ['name' => 'Фантастика', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'Драма',      'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'Комедия',    'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'Боевик',     'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'Триллер',    'created_at' => $now, 'updated_at' => $now],
-        ]);
+        $names = [
+            'Фантастика', // 1
+            'Драма',      // 2
+            'Комедия',    // 3
+            'Боевик',     // 4
+            'Триллер',    // 5
+            'Приключения',// 6
+            'Мультфильм', // 7
+            'Ужасы',      // 8
+            'Мелодрама',  // 9
+        ];
+
+        DB::table('genres')->insert(array_map(fn ($name) => [
+            'name'       => $name,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $names));
     }
 }

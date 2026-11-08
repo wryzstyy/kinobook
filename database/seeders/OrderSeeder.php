@@ -11,13 +11,16 @@ class OrderSeeder extends Seeder
     {
         $now = now();
 
-        // user_id: 2, 2, 3, 4, 5
-        DB::table('orders')->insert([
-            ['user_id' => 2, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 2, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 3, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 4, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 5, 'created_at' => $now, 'updated_at' => $now],
-        ]);
+        // user_id: 2, 2, 3, 4, 5. Все заказы оплачены
+        $rows = array_map(fn ($userId) => [
+            'user_id'    => $userId,
+            'status'     => 'paid',
+            'paid_at'    => $now,
+            'expires_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], [2, 2, 3, 4, 5]);
+
+        DB::table('orders')->insert($rows);
     }
 }

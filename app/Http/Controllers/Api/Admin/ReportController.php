@@ -19,7 +19,7 @@ class ReportController extends Controller
                 $q->when($data['date_from'] ?? null, fn ($q, $d) => $q->whereDate('starts_at', '>=', $d))
                     ->when($data['date_to'] ?? null, fn ($q, $d) => $q->whereDate('starts_at', '<=', $d))
                     ->with('movie:id,title')
-                    ->withCount('tickets')
+                    ->withCount(['tickets' => fn ($t) => $t->whereHas('order', fn ($o) => $o->where('status', 'paid'))])
                     ->orderBy('starts_at');
             }])
             ->orderBy('id')

@@ -24,10 +24,13 @@
       </tr>
       @foreach ($order->tickets as $ticket)
         <tr>
-          <td style="padding:8px; border-bottom:1px solid #eee;">{{ $ticket->seat->row_number }}</td>
-          <td style="padding:8px; border-bottom:1px solid #eee;">{{ $ticket->seat->seat_number }}</td>
-          <td style="padding:8px; border-bottom:1px solid #eee; font-family:monospace; font-size:16px;">
+            <td style="padding:8px; border-bottom:1px solid #eee; font-family:monospace; font-size:16px;">
             <strong>{{ $ticket->code }}</strong>
+            @if (config('services.frontend_url'))
+            <br>
+            <a href="{{ rtrim(config('services.frontend_url'), '/') }}/tickets/{{ $ticket->code }}"
+            style="font-family:Arial, sans-serif; font-size:13px;">Открыть билет</a>
+            @endif
           </td>
         </tr>
       @endforeach

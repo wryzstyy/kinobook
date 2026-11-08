@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\GenreController;
 use App\Http\Controllers\Api\MovieController;
 use App\Http\Controllers\Api\ScreeningController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\Api\TicketController;
 
 // ===== Гость =====
 Route::post('/register', [AuthController::class, 'register']);
@@ -22,6 +24,9 @@ Route::get('/movies/{movie}', [MovieController::class, 'show']);
 Route::get('/sessions', [ScreeningController::class, 'index']);
 Route::get('/sessions/{screening}', [ScreeningController::class, 'show']);
 Route::get('/sessions/{screening}/seats', [ScreeningController::class, 'seats']);
+Route::get('/tickets/{code}', [TicketController::class, 'show'])
+    ->where('code', '[A-Za-z0-9]{12}')
+    ->middleware('throttle:30,1');
 
 // ===== Любой авторизованный =====
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,7 +55,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::apiResource('sessions', AdminScreeningController::class)
         ->parameters(['sessions' => 'screening'])
         ->except('show');
-
+    Route::post('/tickets/{code}/check-in', [AdminTicketController::class, 'checkIn'])
+        ->where('code', '[A-Za-z0-9]{12}');
     Route::get('/reports/occupancy', [AdminReportController::class, 'occupancy']);
     Route::post('/ai/movie-description', [AiController::class, 'movieDescription'])->middleware('throttle:10,1');
 });

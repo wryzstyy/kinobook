@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Enums\TicketStatus;
 
 class BookingController extends Controller
 {
@@ -187,6 +188,10 @@ class BookingController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $order = $request->user()->orders()->with('tickets.screening')->findOrFail($id);
+
+        if ($order->tickets->contains(fn ($t) => $t->status === TicketStatus::Used)) {
+            abort(422, 'Бронь отменить нельзя: билет уже использован.');
+        }
 
         // Оплаченную бронь нельзя отменить позже чем за 60 минут до начала; неоплаченную можно в любой момент
         if ($order->status === OrderStatus::Paid) {

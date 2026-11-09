@@ -1,6 +1,7 @@
 @php
     $screening = $order->tickets->first()->screening;
     $total = number_format($screening->price * $order->tickets->count(), 2, '.', '');
+    $frontend = rtrim((string) config('services.frontend_url'), '/');
 @endphp
 <!DOCTYPE html>
 <html lang="ru">
@@ -16,27 +17,29 @@
       <strong>Сумма:</strong> {{ $total }}
     </p>
 
-    <table style="width:100%; border-collapse:collapse;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; width:100%;">
       <tr style="background:#f0f0f4;">
-        <th align="left" style="padding:8px;">Ряд</th>
-        <th align="left" style="padding:8px;">Место</th>
+        <th width="15%" align="left" style="padding:8px;">Ряд</th>
+        <th width="15%" align="left" style="padding:8px;">Место</th>
         <th align="left" style="padding:8px;">Код билета</th>
       </tr>
       @foreach ($order->tickets as $ticket)
         <tr>
-            <td style="padding:8px; border-bottom:1px solid #eee; font-family:monospace; font-size:16px;">
-            <strong>{{ $ticket->code }}</strong>
-            @if (config('services.frontend_url'))
-            <br>
-            <a href="{{ rtrim(config('services.frontend_url'), '/') }}/tickets/{{ $ticket->code }}"
-            style="font-family:Arial, sans-serif; font-size:13px;">Открыть билет</a>
+          <td width="15%" style="padding:8px; border-bottom:1px solid #eeeeee;">{{ $ticket->seat->row_number }}</td>
+          <td width="15%" style="padding:8px; border-bottom:1px solid #eeeeee;">{{ $ticket->seat->seat_number }}</td>
+          <td style="padding:8px; border-bottom:1px solid #eeeeee;">
+            <strong style="font-family:'Courier New', monospace; font-size:16px;">{{ $ticket->code }}</strong>
+            @if ($frontend !== '')
+              <br>
+              <a href="{{ $frontend }}/tickets/{{ $ticket->code }}"
+                 style="font-size:13px; color:#1a73e8;">Открыть билет</a>
             @endif
           </td>
         </tr>
       @endforeach
     </table>
 
-    <p style="color:#777; font-size:13px; margin-bottom:0;">
+    <p style="color:#777777; font-size:13px; margin-bottom:0;">
       Отменить бронь можно не позднее чем за 60 минут до начала сеанса.
     </p>
   </div>
